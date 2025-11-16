@@ -10,7 +10,6 @@ __pycache__/
 api/__pycache__/
 backend/__pycache__/
 faiss_index_schemes/
-ml_models/
 frontend/node_modules/
 frontend/build/
 frontend/.env.local
