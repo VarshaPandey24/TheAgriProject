@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os               
 from dotenv import load_dotenv
+import dj_database_ur
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -82,13 +83,26 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),      
-        'USER': os.getenv('DB_USER'),          
-        'PASSWORD': os.getenv('DB_PASSWORD'), 
-        'PORT': os.getenv('DB_PORT'),
-        'HOST':os.getenv('DB_HOST'),
+        'NAME': 'default_db_name', # This will be overwritten
     }
 }
+
+# This new code checks if we are on Render and configures the database
+if 'DATABASE_URL' in os.environ:
+    DATABASES['default'] = dj_database_url.config(
+        conn_max_age=600,
+        ssl_require=True # Render's databases require SSL
+    )
+else:
+    # This is your local development settings from .env
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
+    }
 
 
 # Password validation
