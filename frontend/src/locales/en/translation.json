@@ -1,0 +1,19 @@
+{
+  "nav": {
+    "home": "Home",
+    "login": "Login",
+    "register": "Register",
+    "cropDoctor": "Crop Doctor",
+    "logout": "Logout",
+    "hello": "Hello"
+  },
+  "home": {
+    "welcome": "Welcome to Kisan Mitra 🌱",
+    "tagline": "Your all-in-one platform for agricultural success.",
+    "loginPrompt": "Please log in or register to access weather and news."
+  },
+  "cropDoctor": {
+    "title": "Crop Doctor 🩺",
+    "description": "Upload an image of your crop to get an instant diagnosis and treatment plan."
+  }
+}
