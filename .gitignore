@@ -9,7 +9,6 @@ __pycache__/
 /backend/staticfiles/
 api/__pycache__/
 backend/__pycache__/
-faiss_index_schemes/
 frontend/node_modules/
 frontend/build/
 frontend/.env.local
