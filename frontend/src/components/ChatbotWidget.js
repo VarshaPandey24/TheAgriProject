@@ -18,7 +18,6 @@ const ChatbotWidget = () => {
     const { authTokens, user } = useContext(AuthContext);
     const messagesEndRef = useRef(null);
 
-    // Auto-scroll to bottom of messages
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
@@ -61,21 +60,18 @@ const ChatbotWidget = () => {
     const toggleChat = () => {
         setOpen(!open);
     };
-
-    // Don't show the chatbot if user is not logged in
     if (!user) {
         return null;
     }
 
     return (
         <>
-            {/* The Floating Button - CHANGED 'left' TO 'right' */}
             <Fab
                 color="primary"
                 sx={{ 
                     position: 'fixed', 
                     bottom: 24, 
-                    right: 24, // <-- This was changed from 'left'
+                    right: 24, 
                     zIndex: 1000 
                 }}
                 onClick={toggleChat}
@@ -83,14 +79,13 @@ const ChatbotWidget = () => {
                 {open ? <CloseIcon /> : <ChatIcon />}
             </Fab>
 
-            {/* The Chat Window - CHANGED 'left' TO 'right' */}
             {open && (
                 <Paper
                     elevation={10}
                     sx={{
                         position: 'fixed',
                         bottom: 96,
-                        right: 24, // <-- This was changed from 'left'
+                        right: 24, 
                         width: { xs: 'calc(100% - 48px)', sm: 350 },
                         height: { xs: '60%', sm: 450 },
                         zIndex: 1000,
@@ -100,13 +95,11 @@ const ChatbotWidget = () => {
                         overflow: 'hidden'
                     }}
                 >
-                    {/* Header */}
                     <Box sx={{ p: 2, bgcolor: 'primary.main', color: 'white', display: 'flex', alignItems: 'center' }}>
                         <SmartToyIcon sx={{ mr: 1 }} />
                         <Typography variant="h6">Kisan Mitra Chat</Typography>
                     </Box>
 
-                    {/* Message List */}
                     <Box sx={{ flexGrow: 1, p: 2, overflowY: 'auto', backgroundColor: 'background.default' }}>
                         {messages.map((msg, index) => (
                             <Box
@@ -143,8 +136,6 @@ const ChatbotWidget = () => {
                         )}
                         <div ref={messagesEndRef} />
                     </Box>
-
-                    {/* Input Area */}
                     <Box sx={{ p: 1.5, borderTop: '1px solid #ddd', display: 'flex' }}>
                         <TextField
                             fullWidth

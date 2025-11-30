@@ -4,7 +4,6 @@ import {
 } from '@mui/material';
 
 const AnalysisResults = ({ data }) => {
-    // Helper function to render list items safely
     const renderList = (items) => {
         if (!items || !Array.isArray(items)) {
             return <Typography>No information available.</Typography>;
@@ -24,7 +23,6 @@ const AnalysisResults = ({ data }) => {
                 Diagnosis Results
             </Typography>
 
-            {/* --- Disease Name --- */}
             <Box sx={{ mb: 3 }}>
                 <Typography variant="h6">Identified Disease:</Typography>
                 <Typography variant="h5" color="error">
@@ -32,7 +30,6 @@ const AnalysisResults = ({ data }) => {
                 </Typography>
             </Box>
 
-            {/* --- Gemini Analysis --- */}
             <Grid container spacing={3}>
                 <Grid item xs={12} md={4}>
                     <Typography variant="h6">Symptoms</Typography>
@@ -48,7 +45,6 @@ const AnalysisResults = ({ data }) => {
                 </Grid>
             </Grid>
 
-            {/* --- YouTube Videos --- */}
             <Box sx={{ mt: 4 }}>
                 <Typography variant="h6" gutterBottom>
                     Related Videos 

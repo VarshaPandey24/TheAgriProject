@@ -1,4 +1,3 @@
-// frontend/src/pages/SchemePage.js
 import React, { useState, useEffect } from 'react';
 import { 
     Box, 
@@ -8,14 +7,14 @@ import {
     AccordionSummary, 
     AccordionDetails,
     Paper,
-    Button, // Import Button
-    List, // Import List
-    ListItem, // Import ListItem
+    Button, 
+    List, 
+    ListItem, 
     ListItemIcon,
     ListItemText
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'; // Icon for bullets
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'; 
 
 const SchemePage = () => {
     const [schemes, setSchemes] = useState([]);
@@ -78,11 +77,9 @@ const SchemePage = () => {
                                 id={`panel${scheme.id}-header`}
                             >
                                 <Box>
-                                    {/* 1. Title: Bold and Bigger */}
                                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
                                         {scheme.title}
                                     </Typography>
-                                    {/* 2. Summary: Bold and simple */}
                                     <Typography variant="body1" color="text.secondary" sx={{ fontWeight: '500', mt: 1 }}>
                                         {scheme.summary}
                                     </Typography>
@@ -90,7 +87,6 @@ const SchemePage = () => {
                             </AccordionSummary>
                             <AccordionDetails sx={{ borderTop: '1px solid #eee', px: 3 }}>
                                 
-                                {/* 3. Details (as bullets) */}
                                 <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
                                     Details
                                 </Typography>
@@ -103,7 +99,6 @@ const SchemePage = () => {
                                     ))}
                                 </List>
 
-                                {/* 4. Eligibility (as bullets) */}
                                 <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2, mb: 1 }}>
                                     Eligibility
                                 </Typography>
@@ -115,14 +110,12 @@ const SchemePage = () => {
                                         </ListItem>
                                     ))}
                                 </List>
-
-                                {/* 5. Apply Link (as a button) */}
                                 {scheme.apply_link && (
                                     <Button 
                                         variant="contained" 
                                         color="primary" 
                                         href={scheme.apply_link}
-                                        target="_blank" // Opens in a new tab
+                                        target="_blank" 
                                         rel="noopener noreferrer"
                                         sx={{ mt: 3 }}
                                     >

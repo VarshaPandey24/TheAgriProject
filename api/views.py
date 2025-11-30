@@ -27,39 +27,36 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import numpy as np
 from PIL import Image
-import io # To handle image bytes
+import io 
 
-# --- Define model paths and labels ---
 MODEL_DIR = os.path.join(settings.BASE_DIR, 'ml_models')
 MODEL_CONFIG = {
     'Rice': {
         'path': os.path.join(MODEL_DIR, 'rice_model.h5'),
-        'labels': ['Bacterial leaf blight', 'Brown spot', 'Leaf smut', 'Healthy'], # ADJUST LABELS
+        'labels': ['Bacterial leaf blight', 'Brown spot', 'Leaf smut', 'Healthy'], 
         'input_shape': (224, 224) 
     },
     'Wheat': {
         'path': os.path.join(MODEL_DIR, 'wheat_model.h5'),
-        'labels': ['Leaf Rust', 'Stem Rust', 'Healthy'], # ADJUST LABELS
+        'labels': ['Leaf Rust', 'Stem Rust', 'Healthy'], 
         'input_shape': (224, 224) 
     },
     'Potato': {
         'path': os.path.join(MODEL_DIR, 'potato_model.h5'),
-        'labels': ['Early blight', 'Late blight', 'Healthy'], # ADJUST LABELS
+        'labels': ['Early blight', 'Late blight', 'Healthy'], 
         'input_shape': (224, 224)
     },
     'Cotton': {
         'path': os.path.join(MODEL_DIR, 'cotton_model.h5'),
-        'labels': ['diseased cotton leaf', 'diseased cotton plant', 'fresh cotton leaf', 'fresh cotton plant'], # ADJUST LABELS
+        'labels': ['diseased cotton leaf', 'diseased cotton plant', 'fresh cotton leaf', 'fresh cotton plant'], 
         'input_shape': (224, 224)
     },
     'Sugarcane': {
         'path': os.path.join(MODEL_DIR, 'sugarcane_model.h5'),
-        'labels': ['Mosaic', 'RedRot', 'Rust', 'Yellow', 'Healthy'], # ADJUST LABELS
+        'labels': ['Mosaic', 'RedRot', 'Rust', 'Yellow', 'Healthy'], 
         'input_shape': (224, 224)
     },
 }
-
-# --- Your existing Views ---
 
 class HelloView(APIView):
     def get(self, request):
@@ -74,7 +71,6 @@ class RegisterView(generics.CreateAPIView):
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
-# --- UPDATED WeatherView ---
 class WeatherView(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
@@ -119,7 +115,6 @@ class WeatherView(APIView):
         except requests.exceptions.RequestException as e:
             return Response({"error": f"Failed to fetch weather data: {e}"}, status=500)
 
-# --- CORRECTED NewsView (with looping translation) ---
 class NewsView(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
@@ -145,14 +140,11 @@ class NewsView(APIView):
         except requests.exceptions.RequestException as e:
             return Response({"error": f"Failed to fetch news data: {e}"}, status=500)
         
-        # --- FIX: Bundled translation logic ---
         if lang_code != 'en' and news_data.get('articles'):
             try:
                 genai.configure(api_key=settings.GEMINI_API_KEY)
-                # Use the correct model name we found
                 model = genai.GenerativeModel('models/gemini-flash-latest') 
 
-                # Create a list of just the text to be translated
                 texts_to_translate = []
                 for article in news_data['articles']:
                     texts_to_translate.append({
@@ -160,7 +152,6 @@ class NewsView(APIView):
                         "description": article.get('description', '')
                     })
 
-                # Create a single prompt to translate the entire bundle
                 target_language = "Hindi" if lang_code == 'hi' else lang_code
                 prompt = f"""
                 Translate the 'title' and 'description' of each JSON object in the following list into {target_language}.
@@ -175,24 +166,19 @@ class NewsView(APIView):
                 """
 
                 translation_response = model.generate_content(prompt)
-                # Clean up the response to ensure it's valid JSON
                 cleaned_response_text = translation_response.text.strip().lstrip('```json').rstrip('```').strip()
                 translated_articles = json.loads(cleaned_response_text)
 
-                # Replace original titles/descriptions with translated ones
                 for i, article in enumerate(news_data['articles']):
                     if i < len(translated_articles):
                         article['title'] = translated_articles[i]['title']
                         article['description'] = translated_articles[i]['description']
             
             except Exception as e:
-                # If translation fails, log it and just return the English articles
                 print(f"Gemini bundled translation failed: {e}")
-                # We still return news_data, it will just be in English
         
         return Response(news_data)
 
-# --- UPDATED CropHealthView ---
 class CropHealthView(APIView):
     parser_classes = (MultiPartParser, FormParser)
     permission_classes = [IsAuthenticated]
@@ -261,8 +247,6 @@ class CropHealthView(APIView):
         }
         return Response(final_response, status=status.HTTP_200_OK)
 
-
-# --- NEW HELPER: Predict with Custom Model ---
 def predict_with_custom_model(model_path, image_file, class_labels, input_shape):
     """Loads a Keras model, preprocesses image, predicts, and returns label."""
     try:
@@ -291,7 +275,6 @@ def predict_with_custom_model(model_path, image_file, class_labels, input_shape)
     except Exception as e:
         return None, f"Error during model prediction: {e}"
 
-# --- NEW HELPER: Identify with Gemini Vision ---
 def identify_disease_with_gemini_vision(image_file, crop_name):
     """Uses Gemini multimodal model to identify disease from image."""
     try:
@@ -317,7 +300,6 @@ def identify_disease_with_gemini_vision(image_file, crop_name):
         return None, f"Gemini Vision API error: {e}"
 
 
-# --- UPDATED: call_gemini_api (for text) ---
 def call_gemini_api(disease_name, district, state, lang_code='en'):
     """Sends the disease name and location to Gemini and returns a detailed analysis."""
     try:
@@ -350,7 +332,6 @@ def call_gemini_api(disease_name, district, state, lang_code='en'):
     except Exception as e:
         return None, f"Gemini API error: {e}"  
 
-# --- UPDATED: call_youtube_api ---
 def call_youtube_api(disease_name, lang_code='en'):
     """Searches YouTube for DD Kisan videos related to the disease."""
     try:
@@ -365,7 +346,6 @@ def call_youtube_api(disease_name, lang_code='en'):
             type="video",
             maxResults=5,
             relevanceLanguage=lang_code,
-            # Search ONLY within DD Kisan
         )
         response = request.execute()
         
@@ -393,15 +373,13 @@ try:
     CHAT_LLM = ChatGoogleGenerativeAI(model="models/gemini-flash-latest", temperature=0.3)
     CHAT_EMBEDDINGS = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
-    # Load the "brain" (our vector store)
     CHAT_VECTOR_STORE = FAISS.load_local(
         "faiss_index_schemes", 
         CHAT_EMBEDDINGS, 
         allow_dangerous_deserialization=True
     )
-    CHAT_RETRIEVER = CHAT_VECTOR_STORE.as_retriever(search_kwargs={"k": 3}) # Get top 3 matching chunks
+    CHAT_RETRIEVER = CHAT_VECTOR_STORE.as_retriever(search_kwargs={"k": 3}) 
 
-    # This is the "brain" of the prompt
     CHAT_PROMPT_TEMPLATE = """
     You are "Kisan Mitra," an expert AI assistant for Indian farmers. 
     Answer the user's question clearly and politely in simple Hindi.
@@ -431,9 +409,7 @@ except Exception as e:
     print(f"--- CRITICAL ERROR loading RAG chain: {e} ---")
     RAG_CHAIN = None
 
-# --- 2. The API View for the Chatbot ---
 class SchemeChatView(APIView):
-    # We need the user to be logged in to personalize the results
     permission_classes = [IsAuthenticated] 
 
     def post(self, request, *args, **kwargs):
@@ -444,12 +420,7 @@ class SchemeChatView(APIView):
         query = request.data.get('query')
         if not query:
             return Response({"error": "No query provided."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # --- PERSONALIZATION ---
-        # Get the user's data from our database
         user = request.user
-
-        # Find the user's most recent diagnosis to get their location
         last_diagnosis = CropDiagnosis.objects.filter(user=user).order_by('-created_at').first()
 
         user_state = "Unknown"
@@ -459,17 +430,12 @@ class SchemeChatView(APIView):
             user_district = last_diagnosis.district
 
         try:
-            # Run the RAG chain with personalized data!
             response = RAG_CHAIN.invoke({
                 "input": query,
                 "state": user_state,
                 "district": user_district
             })
-
-            # The 'answer' key is automatically created by the retrieval chain
             answer = response.get("answer", "माफ़ कीजिये, मुझे इसका जवाब नहीं मिला।")
-
-            # Send the Hindi text answer back
             return Response({"answer": answer}, status=status.HTTP_200_OK)
 
         except Exception as e:

@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { Typography, Box, Container, CircularProgress, Alert } from '@mui/material';
 import ImageUpload from '../components/ImageUpload';
 import AnalysisResults from '../components/AnalysisResults';
-import { useTranslation } from 'react-i18next'; // 1. Import the hook
+import { useTranslation } from 'react-i18next'; 
 
 const CropDoctorPage = () => {
     const [analysisData, setAnalysisData] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const { t } = useTranslation(); // 2. Activate the hook
+    const { t } = useTranslation(); 
 
     const handleAnalysisComplete = (data) => {
         setIsLoading(false);
@@ -30,7 +30,6 @@ const CropDoctorPage = () => {
     return (
         <Container maxWidth="md">
             <Box sx={{ my: 4, textAlign: 'center' }}>
-                {/* 3. Replace the text */}
                 <Typography variant="h4" component="h1" gutterBottom>
                     {t('cropDoctor.title')}
                 </Typography>

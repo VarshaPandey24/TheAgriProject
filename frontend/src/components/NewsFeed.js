@@ -13,14 +13,13 @@ import {
     Backdrop,
     ToggleButtonGroup,
     ToggleButton,
-    CardMedia, // Import CardMedia for images
-    Paper,      // Import Paper for the header background
-    CardActionArea // Import CardActionArea for a better click effect
+    CardMedia, 
+    Paper,      
+    CardActionArea
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward'; // For the arrow icon
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward'; 
 
-// Updated language list based on your previous request
 const languages = [
     { code: 'en', name: 'English' }, { code: 'hi', name: 'हिन्दी' }
 ];
@@ -33,7 +32,6 @@ const NewsFeed = () => {
     const [language, setLanguage] = useState('en');
 
     const fetchArticles = (lang = language, pageNum = 1, isNewLang = false) => {
-        // Reset hasMore to true when fetching new language
         if (isNewLang) {
             setHasMore(true);
         }
@@ -43,11 +41,10 @@ const NewsFeed = () => {
             .then(data => {
                 if (data.articles && data.articles.length > 0) {
                     setArticles(isNewLang ? data.articles : prev => [...prev, ...data.articles]);
-                    // Check if we have all the results
                     const totalLoaded = isNewLang ? data.articles.length : articles.length + data.articles.length;
                     setHasMore(totalLoaded < data.totalResults);
                 } else {
-                    setHasMore(false); // No more articles to load
+                    setHasMore(false); 
                 }
             })
             .catch(err => {
@@ -56,34 +53,27 @@ const NewsFeed = () => {
             });
     };
 
-    // Effect for the *initial* load
     useEffect(() => {
         fetchArticles('en', 1, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Runs only once on mount
+    }, []); 
 
-    // Handler for language change - This logic is corrected
     const handleLanguageChange = (event, newLanguage) => {
         if (newLanguage !== null && newLanguage !== language) {
             setLanguage(newLanguage);
-            setArticles([]); // Clear existing articles
-            setPage(1); // Reset page number
-            // Call fetchArticles immediately with the new language and reset flags
+            setArticles([]); 
+            setPage(1); 
             fetchArticles(newLanguage, 1, true);
         }
     };
     
-    // This is called by InfiniteScroll to load more
     const loadMoreArticles = () => {
         const nextPage = page + 1;
         setPage(nextPage);
-        fetchArticles(language, nextPage, false); // 'false' means we append, not replace
+        fetchArticles(language, nextPage, false); 
     };
 
-    // Modal logic
     const handleOpenModal = (article) => setSelectedArticle(article);
     const handleCloseModal = () => setSelectedArticle(null);
-    // Use theme's paper background for modal
     const modalStyle = { 
         position: 'absolute', 
         top: '50%', 
@@ -99,7 +89,6 @@ const NewsFeed = () => {
 
     return (
         <Box sx={{ mt: 4 }}>
-            {/* --- WRAP HEADER IN OPAQUE PAPER --- */}
             <Paper sx={{ p: 2, mb: 2 }}>
                 <Typography variant="h4" gutterBottom>Agricultural News</Typography>
 
@@ -124,19 +113,17 @@ const NewsFeed = () => {
                 hasMore={hasMore}
                 loader={<Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}><CircularProgress /></Box>}
                 endMessage={<Typography sx={{ textAlign: 'center', my: 2 }}><b>You have seen all the news!</b></Typography>}
-                key={language} // Add key to force re-render on language change
+                key={language} 
             >
                 {articles.map((article, index) => (
                     <Card key={index} sx={{ mb: 2, display: 'flex', flexDirection: 'column' }}>
                         <CardActionArea onClick={() => handleOpenModal(article)}>
-                            {/* --- ADD CARDMEDIA FOR IMAGE --- */}
                             {article.urlToImage && (
                                 <CardMedia
                                     component="img"
                                     height="200"
                                     image={article.urlToImage}
                                     alt={article.title}
-                                    // Handle image errors
                                     onError={(e) => { e.target.style.display = 'none'; }} 
                                 />
                             )}
@@ -159,7 +146,6 @@ const NewsFeed = () => {
                 ))}
             </InfiniteScroll>
 
-            {/* --- Modal Component --- */}
             <Modal 
                 open={selectedArticle !== null} 
                 onClose={handleCloseModal} 
@@ -182,7 +168,6 @@ const NewsFeed = () => {
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                             By {selectedArticle?.author || selectedArticle?.source.name}
                         </Typography>
-                        {/* --- ADD IMAGE TO MODAL --- */}
                         {selectedArticle?.urlToImage && (
                             <Box
                                 component="img"

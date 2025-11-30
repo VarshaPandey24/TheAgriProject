@@ -3,7 +3,7 @@ import { Card, CardContent, Typography, Box, CircularProgress } from '@mui/mater
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import WbCloudyIcon from '@mui/icons-material/WbCloudy';
 import ThunderstormIcon from '@mui/icons-material/Thunderstorm';
-import WaterDropIcon from '@mui/icons-material/WaterDrop'; // for Rain/Drizzle
+import WaterDropIcon from '@mui/icons-material/WaterDrop';
 
 const Weather = () => {
     const [weatherData, setWeatherData] = useState(null);
@@ -12,7 +12,7 @@ const Weather = () => {
     useEffect(() => {
         const fetchWeatherData = (params) => {
             const query = new URLSearchParams(params).toString();
-            setLoading(true); // Set loading true for every new fetch
+            setLoading(true); 
             fetch(`/api/weather/?${query}`)
                 .then(response => {
                     if (!response.ok) throw new Error('Weather data not found');
@@ -25,7 +25,6 @@ const Weather = () => {
                 .catch(error => {
                     console.error("Error fetching weather:", error);
                     setLoading(false);
-                    // Only fallback to Delhi if it wasn't the city we just tried
                     if (params.city !== 'Delhi') {
                         fetchWeatherData({ city: 'Delhi' });
                     }
@@ -35,12 +34,12 @@ const Weather = () => {
         const getLocation = () => {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
-                    (position) => { // Success
+                    (position) => { 
                         fetchWeatherData({ lat: position.coords.latitude, lon: position.coords.longitude });
                     },
-                    (error) => { // Error or permission denied
+                    (error) => { 
                         console.log("Geolocation error, defaulting to Delhi.", error);
-                        fetchWeatherData({ city: 'Delhi' }); // Our fallback
+                        fetchWeatherData({ city: 'Delhi' }); 
                     }
                 );
             } else {
@@ -50,7 +49,7 @@ const Weather = () => {
         };
         
         getLocation();
-    }, []); // Empty array means this runs once on component mount
+    }, []); 
 
     const getWeatherIcon = (condition) => {
         if (!condition) return <WbCloudyIcon sx={{ fontSize: 60, color: 'text.secondary' }} />;
@@ -65,7 +64,6 @@ const Weather = () => {
     };
 
     if (loading) {
-        // This component is placed inside a Grid item, so just show the spinner
         return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}><CircularProgress color="primary" /></Box>;
     }
     
@@ -74,7 +72,6 @@ const Weather = () => {
     }
 
     return (
-        // The theme.js file will style the Card
         <Card sx={{ height: '100%' }}> 
             <CardContent>
                 <Typography variant="h5" component="div">{weatherData.city}</Typography>
@@ -85,7 +82,6 @@ const Weather = () => {
                     </Typography>
                 </Box>
                 <Typography variant="body1" sx={{ textTransform: 'capitalize' }}>{weatherData.description}</Typography>
-                {/* --- THIS IS THE UPDATED LINE --- */}
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Chance of Rain: {Math.round(weatherData.chance_of_rain)}%</Typography>
                 <Typography variant="body2" color="text.secondary">Humidity: {weatherData.humidity}%</Typography>
                 <Typography variant="body2" color="text.secondary">Wind: {weatherData.wind_speed} m/s</Typography>

@@ -12,8 +12,6 @@ const HomePage = () => {
     return (
         <Box sx={{ my: 4 }}>
             {user ? (
-                // --- LOGGED-IN VIEW ---
-                // Grid layout for the dashboard
                 <Grid container spacing={4}>
                     <Grid item xs={12} md={4}>
                         <Weather />
@@ -23,12 +21,9 @@ const HomePage = () => {
                     </Grid>
                 </Grid>
             ) : (
-                // --- LOGGED-OUT VIEW ---
-                // Simple welcome text that will appear over the global watermark
                 <Box sx={{ 
                     textAlign: 'center', 
                     padding: { xs: 2, md: 6 }, 
-                    // Add a subtle background for readability over the watermark
                     backgroundColor: 'rgba(255, 255, 255, 0.7)',
                     borderRadius: 2
                 }}>

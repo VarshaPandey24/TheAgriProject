@@ -26,27 +26,20 @@ export const AuthProvider = ({ children }) => {
       body: JSON.stringify({ username, password })
     });
     const data = await response.json();
-
-    // ---- Start of Improved Block ----
-
-    // Log the response for easier debugging in the browser console
     console.log('Login Response Status:', response.status);
     console.log('Response Data:', data);
 
-    if (response.ok) { // response.ok checks for any success status (200-299)
+    if (response.ok) { 
       setAuthTokens(data);
       const decodedUser = jwtDecode(data.access);
       setUser(decodedUser);
       localStorage.setItem('authTokens', JSON.stringify(data));
       navigate('/');
     } else if (response.status === 401) {
-      // Provide a more specific error for wrong credentials
       alert('Login failed: Invalid username or password. Please try again.');
     } else {
-      // Generic error for other issues (like server errors)
       alert('An unknown error occurred. Please try again later.');
     }
-    // ---- End of Improved Block ----
   };
 
   const logoutUser = () => {

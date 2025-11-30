@@ -3,7 +3,6 @@ from django.urls import path
 from .views import RegisterView,WeatherView,NewsView,CropHealthView,CropHealthView,GovernmentSchemeListView,SchemeChatView
 
 
-
 urlpatterns = [  
     path('register/', RegisterView.as_view(), name='register'), 
     path('weather/', WeatherView.as_view(), name='weather'),

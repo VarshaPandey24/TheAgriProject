@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { Box, Button, Typography, Select, MenuItem, FormControl, InputLabel, TextField } from '@mui/material';
 import AuthContext from '../context/AuthContext';
-import { useTranslation } from 'react-i18next'; // 1. Import the hook
+import { useTranslation } from 'react-i18next'; 
 
 const ImageUpload = ({ onAnalysisStart, onAnalysisComplete }) => {
     const [image, setImage] = useState(null);
@@ -11,7 +11,7 @@ const ImageUpload = ({ onAnalysisStart, onAnalysisComplete }) => {
     const [state, setState] = useState('');
     
     const { authTokens } = useContext(AuthContext);
-    const { i18n } = useTranslation(); // 2. Get the i18n instance
+    const { i18n } = useTranslation(); 
 
     const handleImageChange = (e) => {
         if (e.target.files && e.target.files[0]) {
@@ -22,24 +22,20 @@ const ImageUpload = ({ onAnalysisStart, onAnalysisComplete }) => {
     };
 
     const handleCropChange = (e) => setCropName(e.target.value);
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!image || !cropName || !district || !state) {
             alert("Please fill in all fields: image, crop, district, and state.");
             return;
-        }
-        
-        onAnalysisStart();
-        
-        const currentLang = i18n.language; // 3. Get the current language (e.g., 'en' or 'hi')
-
+        }   
+        onAnalysisStart(); 
+        const currentLang = i18n.language; 
         const formData = new FormData();
         formData.append('image', image);
         formData.append('crop_name', cropName);
         formData.append('district', district);
         formData.append('state', state);
-        formData.append('lang', currentLang); // 4. Add the language to the form data
+        formData.append('lang', currentLang); 
 
         try {
             const response = await fetch('/api/crop-health/', {
@@ -74,7 +70,6 @@ const ImageUpload = ({ onAnalysisStart, onAnalysisComplete }) => {
   borderRadius: 2, 
   backgroundColor: 'white' 
 }}>
-            {/* ... (all your JSX for the form) ... */}
              <Button variant="contained" component="label">
                 Upload Image
                 <input type="file" hidden accept="image/*" onChange={handleImageChange} />

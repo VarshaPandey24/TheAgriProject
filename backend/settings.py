@@ -87,14 +87,12 @@ DATABASES = {
     }
 }
 
-# This new code checks if we are on Render and configures the database
 if 'DATABASE_URL' in os.environ:
     DATABASES['default'] = dj_database_url.config(
         conn_max_age=600,
-        ssl_require=True # Render's databases require SSL
+        ssl_require=True 
     )
 else:
-    # This is your local development settings from .env
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME'),
