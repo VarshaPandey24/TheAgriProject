@@ -21,13 +21,15 @@ from langchain_community.vectorstores import FAISS
 from langchain_classic.chains.retrieval import create_retrieval_chain
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
-
+from django.views.decorators.cache import cache_page 
+from django.utils.decorators import method_decorator
 import os
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import numpy as np
 from PIL import Image
 import io 
+from django.core.cache import cache
 
 MODEL_DIR = os.path.join(settings.BASE_DIR, 'ml_models')
 MODEL_CONFIG = {
@@ -57,6 +59,7 @@ MODEL_CONFIG = {
         'input_shape': (224, 224)
     },
 }
+CACHE_TTL = 60 * 30
 
 class HelloView(APIView):
     def get(self, request):
@@ -71,6 +74,8 @@ class RegisterView(generics.CreateAPIView):
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
+
+@method_decorator(cache_page(CACHE_TTL), name='get')
 class WeatherView(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
@@ -115,6 +120,7 @@ class WeatherView(APIView):
         except requests.exceptions.RequestException as e:
             return Response({"error": f"Failed to fetch weather data: {e}"}, status=500)
 
+@method_decorator(cache_page(CACHE_TTL), name='get')
 class NewsView(APIView):
     permission_classes = [AllowAny]
     def get(self, request):
@@ -301,6 +307,11 @@ def identify_disease_with_gemini_vision(image_file, crop_name):
 
 
 def call_gemini_api(disease_name, district, state, lang_code='en'):
+    cache_key = f'gemini_analysis:{disease_name}:{district}:{lang_code}'
+    analysis = cache.get(cache_key)
+    if analysis:
+        print("--- CACHE HIT: Returning fast analysis for Gemini ---")
+        return analysis, None
     """Sends the disease name and location to Gemini and returns a detailed analysis."""
     try:
         genai.configure(api_key=settings.GEMINI_API_KEY)
@@ -359,12 +370,11 @@ def call_youtube_api(disease_name, lang_code='en'):
         return videos, None
     except Exception as e:
         return None, f"YouTube API error: {e}"
-
+SCHEME_CACHE_TTL = 31536000
+   
+@method_decorator(cache_page(SCHEME_CACHE_TTL), name='get')
 class GovernmentSchemeListView(generics.ListAPIView):
-    """
-    A simple, fast API view that returns all processed schemes
-    from the database, ordered by the most recently updated.
-    """
+    
     queryset = GovernmentScheme.objects.all().order_by('-last_updated')
     serializer_class = GovernmentSchemeSerializer
     permission_classes = [AllowAny]
