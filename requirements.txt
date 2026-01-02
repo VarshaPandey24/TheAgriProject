@@ -8,6 +8,11 @@ django-extensions
 python-dotenv
 dj-database-url
 
+--find-links https://download.pytorch.org/whl/cpu
+torch==2.2.0+cpu 
+torchvision==0.17.0+cpu
+tf-keras
+keras<3.0.0
 tensorflow-cpu
 Pillow
 google-generativeai
@@ -21,4 +26,5 @@ faiss-cpu
 sentence-transformers
 
 requests
+
 
