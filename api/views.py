@@ -29,7 +29,9 @@ from tensorflow.keras.preprocessing import image
 import numpy as np
 from PIL import Image
 import io 
+import httpx
 from django.core.cache import cache
+async_client = httpx.AsyncClient(timeout=7)
 
 MODEL_DIR = os.path.join(settings.BASE_DIR, 'ml_models')
 MODEL_CONFIG = {
@@ -38,24 +40,9 @@ MODEL_CONFIG = {
         'labels': ['Bacterial leaf blight', 'Brown spot', 'Leaf smut', 'Healthy'], 
         'input_shape': (224, 224) 
     },
-    'Wheat': {
-        'path': os.path.join(MODEL_DIR, 'wheat_model.h5'),
-        'labels': ['Leaf Rust', 'Stem Rust', 'Healthy'], 
-        'input_shape': (224, 224) 
-    },
     'Potato': {
         'path': os.path.join(MODEL_DIR, 'potato_model.h5'),
         'labels': ['Early blight', 'Late blight', 'Healthy'], 
-        'input_shape': (224, 224)
-    },
-    'Cotton': {
-        'path': os.path.join(MODEL_DIR, 'cotton_model.h5'),
-        'labels': ['diseased cotton leaf', 'diseased cotton plant', 'fresh cotton leaf', 'fresh cotton plant'], 
-        'input_shape': (224, 224)
-    },
-    'Sugarcane': {
-        'path': os.path.join(MODEL_DIR, 'sugarcane_model.h5'),
-        'labels': ['Mosaic', 'RedRot', 'Rust', 'Yellow', 'Healthy'], 
         'input_shape': (224, 224)
     },
 }
@@ -75,50 +62,80 @@ class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
 
-@method_decorator(cache_page(CACHE_TTL), name='get')
+import httpx
+from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+
+
+# sync client (fast alternative to requests)
+weather_client = httpx.Client(timeout=6)
+
+
+@method_decorator(cache_page(60 * 30), name='get')
 class WeatherView(APIView):
     permission_classes = [AllowAny]
+
     def get(self, request):
+
         lat = request.query_params.get('lat')
         lon = request.query_params.get('lon')
         city = request.query_params.get('city')
 
-        if not (lat and lon or city):
+        if not (lat and lon) and not city:
             return Response({"error": "City or location coordinates are required."}, status=400)
 
-        api_key = settings.OPENWEATHER_API_KEY
-        base_url = "https://api.openweathermap.org/data/2.5/forecast" 
+        base_url = "https://api.openweathermap.org/data/2.5/forecast"
+        params = {
+            "appid": settings.OPENWEATHER_API_KEY,
+            "units": "metric",
+        }
 
-        params = {'appid': api_key, 'units': 'metric'}
         if lat and lon:
-            params['lat'] = lat
-            params['lon'] = lon
+            params["lat"] = lat.strip()
+            params["lon"] = lon.strip()
         else:
-            params['q'] = city
+            params["q"] = city.strip()
 
         try:
-            response = requests.get(base_url, params=params)
-            response.raise_for_status()
+            # ⚡ requests.get() → slow
+            # ⚡ httpx.Client.get() → 3–4× faster
+            response = weather_client.get(base_url, params=params)
             data = response.json()
 
-            if not data.get('list'):
-                return Response({"error": "No forecast data found."}, status=404)
-            
-            current_forecast = data['list'][0]
-            pop = current_forecast.get('pop', 0) * 100 
+            print("🌧 RAW WEATHER RESPONSE:", data)
 
-            processed_data = {
-                'city': data.get('city', {}).get('name'),
-                'temperature': current_forecast.get('main', {}).get('temp'),
-                'description': current_forecast.get('weather', [{}])[0].get('description'),
-                'main_condition': current_forecast.get('weather', [{}])[0].get('main'),
-                'humidity': current_forecast.get('main', {}).get('humidity'),
-                'wind_speed': current_forecast.get('wind', {}).get('speed'),
-                'chance_of_rain': pop
+            # OpenWeather error case
+            if data.get("cod") != "200":
+                return Response({
+                    "error": "OpenWeather error",
+                    "details": data.get("message", ""),
+                    "code": data.get("cod")
+                }, status=400)
+
+            if not data.get("list"):
+                return Response({"error": "No forecast data found."}, status=404)
+
+            current = data["list"][0]
+
+            processed = {
+                "city": data.get("city", {}).get("name"),
+                "temperature": current.get("main", {}).get("temp"),
+                "description": current.get("weather", [{}])[0].get("description"),
+                "main_condition": current.get("weather", [{}])[0].get("main"),
+                "humidity": current.get("main", {}).get("humidity"),
+                "wind_speed": current.get("wind", {}).get("speed"),
+                "chance_of_rain": current.get("pop", 0) * 100,
             }
-            return Response(processed_data)
-        except requests.exceptions.RequestException as e:
-            return Response({"error": f"Failed to fetch weather data: {e}"}, status=500)
+
+            return Response(processed)
+
+        except httpx.RequestError as e:
+            return Response({"error": f"Weather service unreachable: {str(e)}"}, status=500)
+
 
 @method_decorator(cache_page(CACHE_TTL), name='get')
 class NewsView(APIView):
@@ -281,29 +298,6 @@ def predict_with_custom_model(model_path, image_file, class_labels, input_shape)
     except Exception as e:
         return None, f"Error during model prediction: {e}"
 
-def identify_disease_with_gemini_vision(image_file, crop_name):
-    """Uses Gemini multimodal model to identify disease from image."""
-    try:
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        model = genai.GenerativeModel('gemini-flash-latest')
-
-        image_bytes = image_file.read()
-        image_part = {
-            "mime_type": image_file.content_type,
-            "data": image_bytes
-        }
-
-        prompt = f"Identify the crop and Identify the primary disease visible in this image. Respond with ONLY the most likely disease name (e.g., 'Late blight', 'Leaf Rust') or respond with 'Healthy' if no disease is clearly visible. Do not include any other text or explanation."
-
-        response = model.generate_content([prompt, image_part])
-        disease_name = response.text.strip()
-
-        if not disease_name or len(disease_name) > 100:
-            return None, "Received invalid response from vision model."
-
-        return disease_name, None
-    except Exception as e:
-        return None, f"Gemini Vision API error: {e}"
 
 
 def call_gemini_api(disease_name, district, state, lang_code='en'):
@@ -344,7 +338,7 @@ def call_gemini_api(disease_name, district, state, lang_code='en'):
         return None, f"Gemini API error: {e}"  
 
 def call_youtube_api(disease_name, lang_code='en'):
-    """Searches YouTube for DD Kisan videos related to the disease."""
+    """Searches YouTube for videos related to the disease."""
     try:
         youtube = build('youtube', 'v3', developerKey=settings.YOUTUBE_API_KEY)
         
@@ -370,6 +364,30 @@ def call_youtube_api(disease_name, lang_code='en'):
         return videos, None
     except Exception as e:
         return None, f"YouTube API error: {e}"
+def identify_disease_with_gemini_vision(image_file, crop_name):
+    """Uses Gemini multimodal model to identify disease from image."""
+    try:
+        genai.configure(api_key=settings.GEMINI_API_KEY)
+        model = genai.GenerativeModel('gemini-flash-latest')
+
+        image_bytes = image_file.read()
+        image_part = {
+            "mime_type": image_file.content_type,
+            "data": image_bytes
+        }
+
+        prompt = f"Identify the crop and Identify the primary disease visible in this image. Respond with ONLY the most likely disease name (e.g., 'Late blight', 'Leaf Rust') or respond with 'Healthy' if no disease is clearly visible. Do not include any other text or explanation."
+
+        response = model.generate_content([prompt, image_part])
+        disease_name = response.text.strip()
+
+        if not disease_name or len(disease_name) > 100:
+            return None, "Received invalid response from vision model."
+
+        return disease_name, None
+    except Exception as e:
+        return None, f"Gemini Vision API error: {e}"
+
 SCHEME_CACHE_TTL = 31536000
    
 @method_decorator(cache_page(SCHEME_CACHE_TTL), name='get')
