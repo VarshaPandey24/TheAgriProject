@@ -38,26 +38,13 @@ MODEL_CONFIG = {
         'labels': ['Bacterial leaf blight', 'Brown spot', 'Leaf smut', 'Healthy'], 
         'input_shape': (224, 224) 
     },
-    'Wheat': {
-        'path': os.path.join(MODEL_DIR, 'wheat_model.h5'),
-        'labels': ['Leaf Rust', 'Stem Rust', 'Healthy'], 
-        'input_shape': (224, 224) 
-    },
+   
     'Potato': {
         'path': os.path.join(MODEL_DIR, 'potato_model.h5'),
         'labels': ['Early blight', 'Late blight', 'Healthy'], 
         'input_shape': (224, 224)
     },
-    'Cotton': {
-        'path': os.path.join(MODEL_DIR, 'cotton_model.h5'),
-        'labels': ['diseased cotton leaf', 'diseased cotton plant', 'fresh cotton leaf', 'fresh cotton plant'], 
-        'input_shape': (224, 224)
-    },
-    'Sugarcane': {
-        'path': os.path.join(MODEL_DIR, 'sugarcane_model.h5'),
-        'labels': ['Mosaic', 'RedRot', 'Rust', 'Yellow', 'Healthy'], 
-        'input_shape': (224, 224)
-    },
+   
 }
 CACHE_TTL = 60 * 30
 
@@ -253,13 +240,17 @@ class CropHealthView(APIView):
         }
         return Response(final_response, status=status.HTTP_200_OK)
 
-def predict_with_custom_model(model_path, image_file, class_labels, input_shape):
-    """Loads a Keras model, preprocesses image, predicts, and returns label."""
-    try:
-        if not os.path.exists(model_path):
-            return None, f"Model file not found at {model_path}"
+_MODEL_CACHE = {}
 
-        model = load_model(model_path)
+def predict_with_custom_model(model_path, image_file, class_labels, input_shape):
+    global _MODEL_CACHE
+    try:
+        if model_path not in _MODEL_CACHE:
+            print(f"--- Loading model into memory: {model_path} ---")
+            _MODEL_CACHE[model_path] = load_model(model_path)
+        
+        model = _MODEL_CACHE[model_path]
+        
         img_height, img_width = input_shape
 
         img = Image.open(image_file).convert('RGB')
