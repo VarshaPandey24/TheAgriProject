@@ -1,4 +1,5 @@
-﻿django
+# --- Core Web Framework ---
+django
 djangorestframework
 djangorestframework-simplejwt
 gunicorn
@@ -8,13 +9,20 @@ django-extensions
 python-dotenv
 dj-database-url
 
+# --- Machine Learning (CPU Optimized for Render) ---
 --find-links https://download.pytorch.org/whl/cpu
 torch==2.2.0+cpu 
 torchvision==0.17.0+cpu
-tf-keras
-keras<3.0.0
-tensorflow-cpu
+# Use a slightly older TF to ensure Keras 2 compatibility
+tensorflow-cpu==2.15.0
+tf-keras==2.15.0
+keras==2.15.0
 Pillow
+faiss-cpu
+sentence-transformers
+requests
+
+# --- AI & LangChain ---
 google-genai
 google-api-python-client
 langchain>=0.2.0
@@ -22,10 +30,3 @@ langchain-community>=0.2.0
 langchain-core>=0.2.0
 langchain-google-genai>=1.0.0
 langchain-huggingface>=0.0.3
-faiss-cpu
-sentence-transformers
-
-requests
-
-
-
