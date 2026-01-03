@@ -11,11 +11,8 @@ A **Multi-Model Routing Architecture** ensures high-precision crop disease detec
 
 **Custom-Trained Models (TensorFlow/Keras):**
 - **Rice:** Bacterial Leaf Blight, Brown Spot, Leaf Smut (224×224)
-- **Wheat:** Leaf Rust, Stem Rust (224×224)
 - **Potato:** Early Blight, Late Blight (256×256)
-- **Cotton:** Leaf & plant health analysis (224×224)
-- **Sugarcane:** Mosaic, Red Rot, Rust, Yellow Leaf Disease (224×224)
-
+  
 **Gemini Vision Fallback**
 - Routes unidentified crops to **Gemini 2.5 Flash Vision API** for instant diagnosis.
 
