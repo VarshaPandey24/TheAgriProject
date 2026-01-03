@@ -171,4 +171,4 @@ NEWS_API_KEY=os.getenv('NEWS_API_KEY')
 GEMINI_API_KEY =os.getenv('GEMINI_API_KEY')
 YOUTUBE_API_KEY =os.getenv('GEMINI_API_KEY')
 MEDIA_URL = '/media/'
-MEDIA_ROOT = [BASE_DIR / 'media']
+MEDIA_ROOT = BASE_DIR / 'media'
