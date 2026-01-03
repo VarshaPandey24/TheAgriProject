@@ -12,7 +12,7 @@ A **Multi-Model Routing Architecture** ensures high-precision crop disease detec
 **Custom-Trained Models (TensorFlow/Keras):**
 - **Rice:** Bacterial Leaf Blight, Brown Spot, Leaf Smut (224×224)
 - **Potato:** Early Blight, Late Blight (256×256)
-- 
+  
 **Gemini Vision Fallback**
 - Routes unidentified crops to **Gemini 2.5 Flash Vision API** for instant diagnosis.
 
@@ -74,6 +74,10 @@ python manage.py runserver
 cd frontend
 npm install
 npm start
+
+###DashBoard
+![Farmer Dashboard1](pictures/dashboard1.png)
+![Farmer Dashboard2](pictures/dashboard2.png)
 
 ## 📈 Data Vision
 
